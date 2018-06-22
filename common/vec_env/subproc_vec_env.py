@@ -69,7 +69,6 @@ def worker(remote, map_name, nscripts, i):
 
         ob = (result[0].observation["feature_screen"][
             _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
-
         #  (1, 32, 32)
         selected = result[0].observation["feature_screen"][
             _SELECTED:_SELECTED + 1]  #  (1, 32, 32)
@@ -118,6 +117,7 @@ def worker(remote, map_name, nscripts, i):
         reward += time_step.reward
         ob = (time_step.observation["feature_screen"][
               _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
+
         selected = time_step.observation["feature_screen"][
                    _SELECTED:_SELECTED + 1]  #  (1, 32, 32)
         # extra = np.zeros((1, 32, 32))
@@ -173,9 +173,11 @@ envs: list of gym environments to run in subprocesses
     results = [remote.recv() for remote in self.remotes]
     obs, rews, dones, infos, army_counts, control_groups, selected, xy_per_marine = zip(
       *results)
-    return np.stack(obs), np.stack(rews), np.stack(dones),
+    obs = [np.array(o) for o in obs]
+    selected = [np.array(o) for o in selected]
+    return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
-      xy_per_marine
+      xy_per_marine)
 
   def reset(self):
     for remote in self.remotes:
@@ -183,9 +185,11 @@ envs: list of gym environments to run in subprocesses
     results = [remote.recv() for remote in self.remotes]
     obs, rews, dones, infos, army_counts, control_groups, selected, xy_per_marine = zip(
       *results)
-    return np.stack(obs), np.stack(rews), np.stack(dones),
+    obs = [np.array(o) for o in obs]
+    selected = [np.array(o) for o in selected]
+    return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
-      xy_per_marine
+      xy_per_marine)
 
   def action_spec(self, base_actions):
     for remote, base_action in zip(self.remotes, base_actions):
