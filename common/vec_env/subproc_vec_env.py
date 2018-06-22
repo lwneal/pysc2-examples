@@ -175,6 +175,7 @@ envs: list of gym environments to run in subprocesses
       *results)
     obs = [np.array(o) for o in obs]
     selected = [np.array(o) for o in selected]
+    self.display_obs(obs)
     return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
       xy_per_marine)
@@ -187,9 +188,16 @@ envs: list of gym environments to run in subprocesses
       *results)
     obs = [np.array(o) for o in obs]
     selected = [np.array(o) for o in selected]
+    self.display_obs(obs)
     return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
       xy_per_marine)
+
+  def display_obs(self, obs):
+    from imutil import show
+    for i in range(len(obs)):
+        image = obs[i][0]
+        show(image, resize_to=(128,128), filename='agent_{:02d}.jpg'.format(i))
 
   def action_spec(self, base_actions):
     for remote, base_action in zip(self.remotes, base_actions):
