@@ -13,11 +13,17 @@ from common import common
 
 def worker(remote, map_name, nscripts, i):
 
+  agent_format = sc2_env.AgentInterfaceFormat(
+      feature_dimensions=sc2_env.Dimensions(
+          screen=(32,32),
+          minimap=(32,32)
+      )
+  )
+
   with sc2_env.SC2Env(
+      agent_interface_format=[agent_format],
       map_name=map_name,
-      step_mul=2,
-      screen_size_px=(32, 32),
-      minimap_size_px=(32, 32)) as env:
+      step_mul=2) as env:
     available_actions = []
     result = None
     group_list = []
