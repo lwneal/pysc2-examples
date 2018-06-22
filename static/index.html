@@ -1,0 +1,48 @@
+<html>
+<head>
+<style>
+body {
+    font-family: Sans-Serif;
+}
+</style>
+<script type="text/JavaScript">
+
+function init() {
+    var canvas = document.getElementById("image_view");
+    var ctx = canvas.getContext("2d");
+    subscribe_to_updates();
+}
+
+function subscribe_to_updates() {
+    var canvas = document.getElementById("image_view");
+    var ctx = canvas.getContext("2d");
+    var source = new EventSource('/stream');
+    source.addEventListener('message', function(e) {
+        console.log('Got SSE stream response length ' + e.data.length);
+        img = new Image();
+        img.onload = function() {
+            canvas.setAttribute('width', img.width);
+            canvas.setAttribute('height', img.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = 'data:' + e.data;
+    }, false);
+
+    source.addEventListener('open', function(e) {
+        console.log('SSE stream opened');
+    }, false);
+
+    source.addEventListener('error', function(e) {
+        console.log('SSE stream error: ' + e);
+        console.log(e);
+    }, false);
+}
+</script>
+</head>
+<body onload="JavaScript:init();">
+    <h4>Recorded Video Playback</h4>
+    <canvas id="image_view"></canvas>
+    <br>
+    TODO: Select a session
+</body>
+</html>
