@@ -132,9 +132,11 @@ def worker(remote, map_name, nscripts, i):
         remote.close()
         break
       elif cmd == 'get_spaces':
-        remote.send((env.action_spec().functions[data], ""))
+        spec = env.action_spec()[0]
+        remote.send((spec.functions[data], ""))
       elif cmd == "action_spec":
-        remote.send((env.action_spec().functions[data]))
+        spec = env.action_spec()[0]
+        remote.send((spec.functions[data]))
       else:
         raise NotImplementedError
 
