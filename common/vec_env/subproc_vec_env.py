@@ -67,12 +67,8 @@ def worker(remote, map_name, nscripts, i):
           except Exception as e:
             print("e :", e)
 
-        ob = (result[0].observation["feature_screen"][
-            _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
-        #  (1, 32, 32)
-        selected = result[0].observation["feature_screen"][
-            _SELECTED:_SELECTED + 1]  #  (1, 32, 32)
-        # extra = np.zeros((1, 32, 32))
+        ob, selected = parse_time_step(time_step=result[0], agent_id=i)
+
         control_groups = result[0].observation["control_groups"]
         army_count = env._obs[0].observation.player_common.army_count
 
@@ -100,7 +96,7 @@ def worker(remote, map_name, nscripts, i):
               xy_per_marine["1"] = [int(player_x.mean()), int(player_y.mean())]
             else:
               xy_per_marine["0"] = [int(player_x.mean()), int(player_y.mean())]
-          
+
         remote.send((ob, reward, done, info, army_count,
                      control_groups, selected, xy_per_marine))
 
@@ -115,12 +111,9 @@ def worker(remote, map_name, nscripts, i):
 
         time_step = result[0]
         reward += time_step.reward
-        ob = (time_step.observation["feature_screen"][
-              _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
 
-        selected = time_step.observation["feature_screen"][
-                   _SELECTED:_SELECTED + 1]  #  (1, 32, 32)
-        # extra = np.zeros((1, 32, 32))
+        ob, selected = parse_time_step(time_step=time_step, agent_id=i)
+
         control_groups = time_step.observation["control_groups"]
         army_count = env._obs[0].observation.player_common.army_count
 
@@ -140,6 +133,28 @@ def worker(remote, map_name, nscripts, i):
         remote.send((spec.functions[data]))
       else:
         raise NotImplementedError
+
+
+def parse_time_step(time_step, agent_id):
+    fs = time_step.observation['feature_screen']
+    for i in range(len(fs)):
+        print('feature_screen layer {} has min {} max {} avg {}'.format(i, fs[i].min(), fs[i].max(), fs[i].mean()))
+    print('\n')
+    display_obs(fs, agent_id)
+
+    ob = (time_step.observation["feature_screen"][
+        _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
+    #  (1, 32, 32)
+    selected = time_step.observation["feature_screen"][
+        _SELECTED:_SELECTED + 1]  #  (1, 32, 32)
+    return ob, selected
+
+
+def display_obs(feature_screen, agent_id):
+    from imutil import show
+    image = np.array(feature_screen[5])
+    filename='agent_{:02d}.jpg'.format(agent_id)
+    show(image, resize_to=(128,128), filename=filename)
 
 
 class SubprocVecEnv(VecEnv):
@@ -175,7 +190,6 @@ envs: list of gym environments to run in subprocesses
       *results)
     obs = [np.array(o) for o in obs]
     selected = [np.array(o) for o in selected]
-    self.display_obs(obs)
     return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
       xy_per_marine)
@@ -188,16 +202,9 @@ envs: list of gym environments to run in subprocesses
       *results)
     obs = [np.array(o) for o in obs]
     selected = [np.array(o) for o in selected]
-    self.display_obs(obs)
     return (np.stack(obs), np.stack(rews), np.stack(dones),
       infos, army_counts, control_groups, np.stack(selected),
       xy_per_marine)
-
-  def display_obs(self, obs):
-    from imutil import show
-    for i in range(len(obs)):
-        image = obs[i][0]
-        show(image, resize_to=(128,128), filename='agent_{:02d}.jpg'.format(i))
 
   def action_spec(self, base_actions):
     for remote, base_action in zip(self.remotes, base_actions):

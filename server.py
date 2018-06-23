@@ -28,6 +28,7 @@ def stream_live():
             images = [imutil.decode_jpg('agent_{:02d}.jpg'.format(i)) for i in range(4)]
             imutil.show(np.array(images), filename='splitview.jpg', resize_to=(512,512))
             splitview = open('splitview.jpg', 'rb').read()
+            print('Sending jpg length {}'.format(len(splitview)))
             yield jpg_to_dataurl(splitview)
             time.sleep(.1)
     return flask.Response(generate(), mimetype='text/event-stream')
