@@ -30,7 +30,7 @@ def stream_live():
             splitview = open('splitview.jpg', 'rb').read()
             print('Sending jpg length {}'.format(len(splitview)))
             yield jpg_to_dataurl(splitview)
-            time.sleep(.1)
+            time.sleep(1.0)
     return flask.Response(generate(), mimetype='text/event-stream')
 
 def latest_image_for_agent(agent_id):

@@ -137,9 +137,6 @@ def worker(remote, map_name, nscripts, i):
 
 def parse_time_step(time_step, agent_id):
     fs = time_step.observation['feature_screen']
-    for i in range(len(fs)):
-        print('feature_screen layer {} has min {} max {} avg {}'.format(i, fs[i].min(), fs[i].max(), fs[i].mean()))
-    print('\n')
     display_obs(fs, agent_id)
 
     ob = (time_step.observation["feature_screen"][
