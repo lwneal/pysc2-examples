@@ -17,7 +17,12 @@ def worker(remote, map_name, nscripts, i):
       feature_dimensions=sc2_env.Dimensions(
           screen=(32,32),
           minimap=(32,32)
-      )
+      ),
+      rgb_dimensions=sc2_env.Dimensions(
+          screen=(256,256),
+          minimap=(256,256),
+      ),
+      action_space=actions.ActionSpace.FEATURES,
   )
 
   with sc2_env.SC2Env(
@@ -136,8 +141,7 @@ def worker(remote, map_name, nscripts, i):
 
 
 def parse_time_step(time_step, agent_id):
-    fs = time_step.observation['feature_screen']
-    display_obs(fs, agent_id)
+    display_obs(time_step.observation, agent_id)
 
     ob = (time_step.observation["feature_screen"][
         _PLAYER_RELATIVE:_PLAYER_RELATIVE + 1] == 3).astype(int)
@@ -147,18 +151,23 @@ def parse_time_step(time_step, agent_id):
     return ob, selected
 
 
-def display_obs(feature_screen, agent_id):
+def display_obs(observation, agent_id):
     from imutil import show
+    feature_screen = observation['feature_screen']
     image = np.array(feature_screen[5])
+    all_features = np.array([np.array(f) for f in feature_screen])
+    show(all_features, video_filename="all_features_agent_{:02d}.mjpeg".format(agent_id))
+
     filename='agent_{:02d}.jpg'.format(agent_id)
     show(image, resize_to=(128,128), filename=filename)
+
+    screenshot = observation['rgb_screen']
+    show(screenshot, video_filename='gameplay_agent_{:02d}.mjpeg'.format(agent_id))
+
 
 
 class SubprocVecEnv(VecEnv):
   def __init__(self, nenvs, nscripts, map_name):
-    """
-envs: list of gym environments to run in subprocesses
-"""
 
     self.remotes, self.work_remotes = zip(*[Pipe() for _ in range(nenvs)])
 
@@ -169,9 +178,6 @@ envs: list of gym environments to run in subprocesses
         Process(target=worker, args=(work_remote, map_name, nscripts, i)))
       i += 1
 
-    #
-    # self.ps = [Process(target=worker, args=(work_remote, (map_name)))
-    #            for (work_remote,) in zip(self.work_remotes,)]
     for p in self.ps:
       p.start()
 
