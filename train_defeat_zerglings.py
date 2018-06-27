@@ -39,49 +39,34 @@ start_time = datetime.datetime.now().strftime("%Y%m%d%H%M")
 def main():
   FLAGS(sys.argv)
 
-  logdir = "tensorboard"
-  if(FLAGS.algorithm == "deepq"):
-    logdir = "tensorboard/zergling/%s/%s_%s_prio%s_duel%s_lr%s/%s" % (
-      FLAGS.algorithm,
-      FLAGS.timesteps,
-      FLAGS.exploration_fraction,
-      FLAGS.prioritized,
-      FLAGS.dueling,
-      FLAGS.lr,
-      start_time
-    )
-  elif(FLAGS.algorithm == "acktr"):
-    logdir = "tensorboard/zergling/%s/%s_num%s_lr%s/%s" % (
-      FLAGS.algorithm,
-      FLAGS.timesteps,
-      FLAGS.num_cpu,
-      FLAGS.lr,
-      start_time
-    )
+  Logger.DEFAULT = Logger.CURRENT = Logger(dir=None, output_formats=[HumanOutputFormat(sys.stdout)])
 
-  if(FLAGS.log == "tensorboard"):
-    Logger.DEFAULT \
-      = Logger.CURRENT \
-      = Logger(dir=None,
-               output_formats=[TensorBoardOutputFormat(logdir)])
 
-  elif(FLAGS.log == "stdout"):
-    Logger.DEFAULT \
-      = Logger.CURRENT \
-      = Logger(dir=None,
-               output_formats=[HumanOutputFormat(sys.stdout)])
+  env_args = {
+      'map_name': 'DefeatZerglingsAndBanelings',
+      'step_mul': step_mul,
+      'game_steps_per_episode': steps * step_mul,
+      'agent_interface_format': sc2_env.AgentInterfaceFormat(
+          feature_dimensions=sc2_env.Dimensions(
+              screen=(32,32),
+              minimap=(32,32)
+          ),
+          rgb_dimensions=sc2_env.Dimensions(
+              screen=(256,256),
+              minimap=(256,256),
+          ),
+          action_space=actions.ActionSpace.FEATURES,
+      ),
+  }
+  with sc2_env.SC2Env(**env_args) as env:
+      play_game(env)
 
-  with sc2_env.SC2Env(
-      map_name="DefeatZerglingsAndBanelings",
-      step_mul=step_mul,
-      visualize=True,
-      game_steps_per_episode=steps * step_mul) as env:
 
-    model = deepq.models.cnn_to_mlp(
-      convs=[(32, 8, 4), (64, 4, 2), (64, 3, 1)],
-      hiddens=[256],
-      dueling=True
-    )
+def play_game(env):
+
+    for i in range(1000):
+      import imutil
+      common.select_marine(env, obs)
     demo_replay = []
     act = dqfd.learn(
       env,

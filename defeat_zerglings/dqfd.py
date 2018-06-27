@@ -8,6 +8,8 @@ import zipfile
 from absl import flags
 
 import baselines.common.tf_util as U
+from baselines.deepq.utils import BatchInput
+from baselines.common.tf_util import load_state
 
 from baselines import logger
 from baselines.common.schedules import LinearSchedule
@@ -67,7 +69,7 @@ class ActWrapper(object):
         f.write(model_data)
 
       zipfile.ZipFile(arc_path, 'r', zipfile.ZIP_DEFLATED).extractall(td)
-      U.load_state(os.path.join(td, "model"))
+      load_state(os.path.join(td, "model"))
 
     return ActWrapper(act)
 
@@ -209,7 +211,7 @@ act: ActWrapper
   sess.__enter__()
 
   def make_obs_ph(name):
-    return U.BatchInput((64, 64), name=name)
+    return BatchInput((64, 64), name=name)
 
   act, train, update_target, debug = deepq.build_train(
     make_obs_ph=make_obs_ph,
@@ -413,6 +415,6 @@ act: ActWrapper
       if print_freq is not None:
         logger.log("Restored model with mean reward: {}".format(
           saved_mean_reward))
-      U.load_state(model_file)
+      load_state(model_file)
 
   return ActWrapper(act)
