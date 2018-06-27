@@ -154,7 +154,8 @@ def parse_time_step(time_step, agent_id):
 def display_obs(observation, agent_id):
     from imutil import show
     feature_screen = observation['feature_screen']
-    image = np.array(feature_screen[5])
+    #image = np.array(feature_screen[5])
+    image = observation['rgb_screen']
     all_features = np.array([np.array(f) for f in feature_screen])
     show(all_features, video_filename="all_features_agent_{:02d}.mjpeg".format(agent_id))
 
