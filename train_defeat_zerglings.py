@@ -67,6 +67,8 @@ def play_game(env):
     for i in range(1000):
       import imutil
       common.select_marine(env, obs)
+
+    """
     demo_replay = []
     act = dqfd.learn(
       env,
@@ -85,6 +87,7 @@ def play_game(env):
       callback=deepq_callback
     )
     act.save("defeat_zerglings.pkl")
+    """
 
 def deepq_callback(locals, globals):
   #pprint.pprint(locals)

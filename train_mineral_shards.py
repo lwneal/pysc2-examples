@@ -159,9 +159,7 @@ def main():
 
   elif (FLAGS.algorithm == "a2c"):
 
-    num_timesteps = int(40e6)
-
-    num_timesteps //= 4
+    num_timesteps = int(10e6)
 
     seed = 0
 
